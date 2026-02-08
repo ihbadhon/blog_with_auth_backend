@@ -1,56 +1,53 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { ChangePasswordDto } from './dto/change-password.dto';
-
-// Shared fake users database (should match auth service)
-const fakeUsers = [
-    { 
-        id: 1,
-        username: 'john',
-        password: 'changeme',
-        email: 'john@example.com',
-        name: 'John Doe'
-    },
-    { 
-        id: 2,
-        username: 'maria',
-        password: 'guess',
-        email: 'maria@example.com',
-        name: 'Maria Garcia'
-    }
-];
+import { PrismaService } from '../prisma.service';
 
 @Injectable()
 export class UserService {
-    
-    getUserProfile(userId: number) {
-        const user = fakeUsers.find((user) => user.id === userId);
-        
-        if (!user) {
-            throw new HttpException('User not found', 404);
-        }
-        
-        // Return user profile without password
-        const { password, ...profile } = user;
-        return profile;
+  constructor(private prisma: PrismaService) {}
+
+  async getUserProfile(userId: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    if (!user) {
+      throw new HttpException('User not found', 404);
     }
 
-    changePassword(userId: number, changePasswordDto: ChangePasswordDto) {
-        const user = fakeUsers.find((user) => user.id === userId);
-        
-        if (!user) {
-            throw new HttpException('User not found', 404);
-        }
+    return user;
+  }
 
-        // Verify current password
-        if (user.password !== changePasswordDto.currentPassword) {
-            throw new HttpException('Current password is incorrect', 401);
-        }
+  async changePassword(userId: number, changePasswordDto: ChangePasswordDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
 
-        // Update password
-        user.password = changePasswordDto.newPassword;
-        
-        return {
-            message: 'Password changed successfully'
-        };
+    if (!user) {
+      throw new HttpException('User not found', 404);
     }
+
+    // Note: In production, you should use bcrypt to hash and compare passwords
+    if (user.password !== changePasswordDto.currentPassword) {
+      throw new HttpException('Current password is incorrect', 401);
+    }
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        password: changePasswordDto.newPassword,
+      },
+    });
+
+    return {
+      message: 'Password changed successfully',
+    };
+  }
 }

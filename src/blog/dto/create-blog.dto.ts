@@ -1,4 +1,4 @@
 export class CreateBlogDto {
-    title: string;
-    content: string;
+  title: string;
+  content: string;
 }

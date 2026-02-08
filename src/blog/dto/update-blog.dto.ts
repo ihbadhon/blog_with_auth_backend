@@ -1,4 +1,4 @@
 export class UpdateBlogDto {
-    title?: string;
-    content?: string;
+  title?: string;
+  content?: string;
 }

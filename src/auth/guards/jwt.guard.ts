@@ -1,11 +1,13 @@
-import { ExecutionContext } from "@nestjs/common";
-import { AuthGuard } from "@nestjs/passport";
-import { Observable } from "rxjs";
+import { ExecutionContext } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+import { Observable } from 'rxjs';
 
 export class JwtAuthGuard extends AuthGuard('jwt') {
-    canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
-        console.log('inside jwt auth guard');
-        
-        return super.canActivate(context);
-    }
+  canActivate(
+    context: ExecutionContext,
+  ): boolean | Promise<boolean> | Observable<boolean> {
+    console.log('inside jwt auth guard');
+
+    return super.canActivate(context);
+  }
 }

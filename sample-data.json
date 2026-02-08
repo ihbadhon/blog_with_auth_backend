@@ -1,0 +1,148 @@
+{
+  "users": [
+    {
+      "username": "alice_blogger",
+      "password": "password123"
+    },
+    {
+      "username": "bob_developer",
+      "password": "password456"
+    },
+    {
+      "username": "charlie_reader",
+      "password": "password789"
+    },
+    {
+      "username": "diana_writer",
+      "password": "password111"
+    },
+    {
+      "username": "eve_commenter",
+      "password": "password222"
+    }
+  ],
+  "blogs": [
+    {
+      "title": "Introduction to NestJS Framework",
+      "content": "NestJS is a progressive Node.js framework for building efficient, reliable and scalable server-side applications. It uses modern JavaScript, is built with TypeScript (preserves compatibility with pure JavaScript) and combines elements of OOP (Object Oriented Programming), FP (Functional Programming), and FRP (Functional Reactive Programming). Under the hood, NestJS makes use of robust HTTP Server frameworks like Express (the default) and optionally can be configured to use Fastify as well!"
+    },
+    {
+      "title": "Understanding Prisma ORM",
+      "content": "Prisma is a next-generation Node.js and TypeScript ORM that unlocks a new level of developer experience when working with databases thanks to its intuitive data model, automated migrations, type-safety, and auto-completion. It replaces traditional ORMs and makes database access easy with an auto-generated and type-safe query builder that's tailored to your database schema."
+    },
+    {
+      "title": "JWT Authentication Best Practices",
+      "content": "JSON Web Tokens (JWT) are an open, industry standard RFC 7519 method for representing claims securely between two parties. In this article, we'll explore best practices for implementing JWT authentication including: storing tokens securely, setting appropriate expiration times, implementing refresh token rotation, and protecting against common vulnerabilities like XSS and CSRF attacks."
+    },
+    {
+      "title": "Building RESTful APIs with TypeScript",
+      "content": "REST (Representational State Transfer) is an architectural style for designing networked applications. TypeScript adds static typing to JavaScript, making it easier to catch errors early and write more maintainable code. In this comprehensive guide, we'll walk through building a complete RESTful API using TypeScript, covering routing, middleware, validation, error handling, and best practices for API design."
+    },
+    {
+      "title": "Database Migrations with Prisma",
+      "content": "Database migrations are a crucial part of application development. They allow you to evolve your database schema over time while preserving existing data. Prisma Migrate is a powerful migration tool that generates SQL migration files based on your Prisma schema changes. This article covers how to create migrations, handle migration conflicts, and manage migrations across different environments."
+    },
+    {
+      "title": "Securing Your NestJS Application",
+      "content": "Security is paramount when building web applications. This guide covers essential security practices for NestJS applications including: implementing authentication and authorization, protecting against SQL injection, preventing XSS attacks, rate limiting, CORS configuration, helmet for HTTP headers, and security best practices for production deployments."
+    },
+    {
+      "title": "Testing in NestJS with Jest",
+      "content": "Testing is an essential part of modern software development. NestJS comes with built-in support for Jest, a delightful JavaScript testing framework. This tutorial covers unit testing, integration testing, E2E testing, mocking dependencies, testing controllers and services, and setting up CI/CD pipelines with automated testing."
+    },
+    {
+      "title": "GraphQL vs REST: Choosing the Right API",
+      "content": "Both GraphQL and REST are popular API design patterns, but they solve different problems. REST is simple and widely adopted, while GraphQL offers more flexibility in data fetching. This article compares both approaches, discusses their pros and cons, and helps you decide which one is right for your project based on your specific requirements."
+    },
+    {
+      "title": "Microservices Architecture with NestJS",
+      "content": "Microservices architecture divides applications into small, independent services that communicate over a network. NestJS provides excellent support for building microservices with various transport layers including TCP, Redis, NATS, MQTT, gRPC, and RabbitMQ. This guide explores how to design, build, and deploy microservices using NestJS."
+    },
+    {
+      "title": "Performance Optimization in Node.js",
+      "content": "Performance optimization is crucial for delivering fast and responsive applications. This article covers various Node.js performance optimization techniques including: caching strategies, database query optimization, connection pooling, clustering, load balancing, profiling and monitoring, memory leak detection, and benchmarking your application."
+    }
+  ],
+  "comments": [
+    {
+      "content": "Great introduction! This really helped me understand the basics of NestJS.",
+      "blogId": 1
+    },
+    {
+      "content": "Thanks for sharing. Very well explained!",
+      "blogId": 1
+    },
+    {
+      "content": "I've been using Prisma for a few months now and I absolutely love it. The type safety is a game changer!",
+      "blogId": 2
+    },
+    {
+      "content": "How does Prisma compare to TypeORM? I'm trying to decide which ORM to use.",
+      "blogId": 2
+    },
+    {
+      "content": "Excellent article on JWT! One question: what's your recommendation for token expiration time?",
+      "blogId": 3
+    },
+    {
+      "content": "This is exactly what I needed. Implementing JWT authentication now in my project.",
+      "blogId": 3
+    },
+    {
+      "content": "Very comprehensive guide! The TypeScript examples are really helpful.",
+      "blogId": 4
+    },
+    {
+      "content": "Could you add an example of error handling middleware?",
+      "blogId": 4
+    },
+    {
+      "content": "Migrations can be tricky. This article made it much clearer. Thanks!",
+      "blogId": 5
+    },
+    {
+      "content": "What happens if a migration fails in production? Do you have a rollback strategy?",
+      "blogId": 5
+    },
+    {
+      "content": "Security is so important. Thanks for covering these topics!",
+      "blogId": 6
+    },
+    {
+      "content": "I would add 2FA to this list as well. Great article!",
+      "blogId": 6
+    },
+    {
+      "content": "Jest is amazing for testing. This guide is very thorough.",
+      "blogId": 7
+    },
+    {
+      "content": "How do you handle testing database interactions? Do you use a test database?",
+      "blogId": 7
+    },
+    {
+      "content": "I prefer GraphQL for complex applications where you need flexible data fetching.",
+      "blogId": 8
+    },
+    {
+      "content": "REST is still my go-to for simple APIs. It's battle-tested and well-understood.",
+      "blogId": 8
+    },
+    {
+      "content": "Microservices are powerful but add complexity. Make sure you really need them before going this route.",
+      "blogId": 9
+    },
+    {
+      "content": "Great overview of microservices with NestJS. Would love to see a follow-up on service mesh patterns.",
+      "blogId": 9
+    },
+    {
+      "content": "Performance optimization is often overlooked. These tips are gold!",
+      "blogId": 10
+    },
+    {
+      "content": "Caching made a huge difference in my application. Reduced response time by 80%!",
+      "blogId": 10
+    }
+  ]
+}

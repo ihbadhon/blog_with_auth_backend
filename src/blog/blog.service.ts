@@ -1,149 +1,158 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { CreateBlogDto } from './dto/create-blog.dto';
 import { UpdateBlogDto } from './dto/update-blog.dto';
-
-interface Blog {
-    id: number;
-    title: string;
-    content: string;
-    authorId: number;
-    authorName: string;
-    createdAt: Date;
-    updatedAt: Date;
-}
-
-// In-memory blog storage
-let blogs: Blog[] = [
-    {
-        id: 1,
-        title: 'Getting Started with NestJS',
-        content: 'NestJS is a progressive Node.js framework...',
-        authorId: 1,
-        authorName: 'john',
-        createdAt: new Date('2026-01-15'),
-        updatedAt: new Date('2026-01-15')
-    },
-    {
-        id: 2,
-        title: 'Understanding JWT Authentication',
-        content: 'JWT (JSON Web Tokens) are a secure way to authenticate...',
-        authorId: 2,
-        authorName: 'maria',
-        createdAt: new Date('2026-01-20'),
-        updatedAt: new Date('2026-01-20')
-    }
-];
-
-let nextBlogId = 3;
+import { PrismaService } from '../prisma.service';
 
 @Injectable()
 export class BlogService {
-    
-    // Public: Get all blogs
-    getAllBlogs() {
-        return blogs.map(blog => ({
-            ...blog,
-            createdAt: blog.createdAt.toISOString(),
-            updatedAt: blog.updatedAt.toISOString()
-        }));
+  constructor(private prisma: PrismaService) {}
+
+  // Public: Get all blogs
+  async getAllBlogs() {
+    const blogs = await this.prisma.blog.findMany({
+      include: {
+        author: {
+          select: {
+            id: true,
+            username: true,
+            email: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    return blogs;
+  }
+
+  // Get single blog (can be public or private)
+  async getBlogById(id: number) {
+    const blog = await this.prisma.blog.findUnique({
+      where: { id },
+      include: {
+        author: {
+          select: {
+            id: true,
+            username: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    if (!blog) {
+      throw new HttpException('Blog not found', 404);
     }
 
-    // Get single blog (can be public or private)
-    getBlogById(id: number) {
-        const blog = blogs.find(b => b.id === id);
-        
-        if (!blog) {
-            throw new HttpException('Blog not found', 404);
-        }
-        
-        return {
-            ...blog,
-            createdAt: blog.createdAt.toISOString(),
-            updatedAt: blog.updatedAt.toISOString()
-        };
+    return blog;
+  }
+
+  // Protected: Create blog
+  async createBlog(createBlogDto: CreateBlogDto, userId: number) {
+    const newBlog = await this.prisma.blog.create({
+      data: {
+        title: createBlogDto.title,
+        content: createBlogDto.content,
+        authorId: userId,
+      },
+      include: {
+        author: {
+          select: {
+            id: true,
+            username: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    return newBlog;
+  }
+
+  // Protected: Update blog (only by author)
+  async updateBlog(id: number, updateBlogDto: UpdateBlogDto, userId: number) {
+    const blog = await this.prisma.blog.findUnique({
+      where: { id },
+    });
+
+    if (!blog) {
+      throw new HttpException('Blog not found', 404);
     }
 
-    // Protected: Create blog
-    createBlog(createBlogDto: CreateBlogDto, userId: number, username: string) {
-        const newBlog: Blog = {
-            id: nextBlogId++,
-            title: createBlogDto.title,
-            content: createBlogDto.content,
-            authorId: userId,
-            authorName: username,
-            createdAt: new Date(),
-            updatedAt: new Date()
-        };
-
-        blogs.push(newBlog);
-        
-        return {
-            ...newBlog,
-            createdAt: newBlog.createdAt.toISOString(),
-            updatedAt: newBlog.updatedAt.toISOString()
-        };
+    // Check if user is the author
+    if (blog.authorId !== userId) {
+      throw new HttpException(
+        'You are not authorized to update this blog',
+        403,
+      );
     }
 
-    // Protected: Update blog (only by author)
-    updateBlog(id: number, updateBlogDto: UpdateBlogDto, userId: number) {
-        const blog = blogs.find(b => b.id === id);
-        
-        if (!blog) {
-            throw new HttpException('Blog not found', 404);
-        }
+    // Update blog
+    const updatedBlog = await this.prisma.blog.update({
+      where: { id },
+      data: updateBlogDto,
+      include: {
+        author: {
+          select: {
+            id: true,
+            username: true,
+            email: true,
+          },
+        },
+      },
+    });
 
-        // Check if user is the author
-        if (blog.authorId !== userId) {
-            throw new HttpException('You are not authorized to update this blog', 403);
-        }
+    return updatedBlog;
+  }
 
-        // Update fields
-        if (updateBlogDto.title !== undefined) {
-            blog.title = updateBlogDto.title;
-        }
-        if (updateBlogDto.content !== undefined) {
-            blog.content = updateBlogDto.content;
-        }
-        blog.updatedAt = new Date();
+  // Protected: Delete blog (only by author)
+  async deleteBlog(id: number, userId: number) {
+    const blog = await this.prisma.blog.findUnique({
+      where: { id },
+    });
 
-        return {
-            ...blog,
-            createdAt: blog.createdAt.toISOString(),
-            updatedAt: blog.updatedAt.toISOString()
-        };
+    if (!blog) {
+      throw new HttpException('Blog not found', 404);
     }
 
-    // Protected: Delete blog (only by author)
-    deleteBlog(id: number, userId: number) {
-        const blogIndex = blogs.findIndex(b => b.id === id);
-        
-        if (blogIndex === -1) {
-            throw new HttpException('Blog not found', 404);
-        }
-
-        const blog = blogs[blogIndex];
-
-        // Check if user is the author
-        if (blog.authorId !== userId) {
-            throw new HttpException('You are not authorized to delete this blog', 403);
-        }
-
-        blogs.splice(blogIndex, 1);
-
-        return {
-            message: 'Blog deleted successfully',
-            deletedBlogId: id
-        };
+    // Check if user is the author
+    if (blog.authorId !== userId) {
+      throw new HttpException(
+        'You are not authorized to delete this blog',
+        403,
+      );
     }
 
-    // Get blogs by specific user
-    getBlogsByUser(userId: number) {
-        return blogs
-            .filter(b => b.authorId === userId)
-            .map(blog => ({
-                ...blog,
-                createdAt: blog.createdAt.toISOString(),
-                updatedAt: blog.updatedAt.toISOString()
-            }));
-    }
+    await this.prisma.blog.delete({
+      where: { id },
+    });
+
+    return {
+      message: 'Blog deleted successfully',
+      deletedBlogId: id,
+    };
+  }
+
+  // Get blogs by specific user
+  async getBlogsByUser(userId: number) {
+    const blogs = await this.prisma.blog.findMany({
+      where: { authorId: userId },
+      include: {
+        author: {
+          select: {
+            id: true,
+            username: true,
+            email: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    return blogs;
+  }
 }
