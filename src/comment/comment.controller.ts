@@ -15,7 +15,9 @@ import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 import { RequestWithUser } from '../auth/interfaces/jwt-payload.interface';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiBearerAuth()
 @Controller('comments')
 export class CommentController {
   constructor(private readonly commentService: CommentService) {}

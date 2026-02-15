@@ -9,7 +9,9 @@ import {
 import { LikeService } from './like.service';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 import { RequestWithUser } from '../auth/interfaces/jwt-payload.interface';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiBearerAuth()
 @Controller('likes')
 export class LikeController {
   constructor(private likeService: LikeService) {}

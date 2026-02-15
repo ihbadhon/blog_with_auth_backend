@@ -15,7 +15,9 @@ import { CreateBlogDto } from './dto/create-blog.dto';
 import { UpdateBlogDto } from './dto/update-blog.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 import { RequestWithUser } from '../auth/interfaces/jwt-payload.interface';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiBearerAuth()
 @Controller('blogs')
 export class BlogController {
   constructor(private blogService: BlogService) {}
