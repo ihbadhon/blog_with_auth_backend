@@ -27,6 +27,11 @@ export class AuthController {
     return this.authService.verifyEmail(email, token);
   }
 
+  @Post('resend-otp')
+  resendOtp(@Body() body: { email: string }) {
+    return this.authService.resendOtp(body.email);
+  }
+
   @Post('login')
   @UseGuards(localGuard)
   login(@Body() authPayLoad: AuthPayloadDto) {
