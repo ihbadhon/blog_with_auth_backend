@@ -22,9 +22,9 @@ export class AuthController {
     return this.authService.register(authPayLoad);
   }
 
-  @Get('verify/:token')
-  verifyEmail(@Param('token') token: string) {
-    return this.authService.verifyEmail(token);
+  @Get('verify/:email/:token')
+  verifyEmail(@Param('email') email: string, @Param('token') token: string) {
+    return this.authService.verifyEmail(email, token);
   }
 
   @Post('login')

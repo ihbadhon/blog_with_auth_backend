@@ -7,6 +7,8 @@ import { LocalStrategy } from './strategies/local.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { PrismaModule } from '../prisma.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { OtpModule } from './otp/otp.module';
+import { OtpService } from './otp/otp.service';
 
 @Module({
   imports: [
@@ -19,8 +21,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       }),
     }),
     PrismaModule,
+    OtpModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, LocalStrategy, JwtStrategy],
+  providers: [AuthService, LocalStrategy, JwtStrategy, OtpService],
 })
 export class AuthModule {}

@@ -6,6 +6,7 @@ import * as bcrypt from 'bcrypt';
 import { v4 as uuid } from 'uuid';
 import { MailerService } from '@nestjs-modules/mailer';
 import { ConfigService } from '@nestjs/config';
+import { OtpService } from './otp/otp.service';
 
 @Injectable()
 export class AuthService {
@@ -14,6 +15,7 @@ export class AuthService {
     private prisma: PrismaService,
     private mailerService: MailerService,
     private configService: ConfigService,
+    private otpService: OtpService,
   ) {}
 
   async register({ username, password }: AuthPayloadDto) {
@@ -27,20 +29,24 @@ export class AuthService {
     }
 
     const hashedPass = await bcrypt.hash(password, 10);
-    const token = uuid();
+    // const token = uuid();
     // Store in database
     const user = await this.prisma.user.create({
       data: {
         username: username,
         password: hashedPass,
         email: username, // Using username as email since it's validated as email
-        verifyToken: token,
+        // verifyToken: token,
       },
     });
 
+    // store in redis
+
+    const otp = await this.otpService.storeOtp(user.email);
+
     // Send verification email
     const appUrl = this.configService.get('APP_URL');
-    const verificationUrl = `${appUrl}/auth/verify/${token}`;
+    const verificationUrl = `${appUrl}/auth/verify/${user.email}/${otp}`;
 
     try {
       await this.mailerService.sendMail({
@@ -101,9 +107,9 @@ export class AuthService {
     throw new HttpException('Invalid credentials', 401);
   }
 
-  async verifyEmail(token: string) {
+  async verifyEmail(email: string, otp: string) {
     const user = await this.prisma.user.findUnique({
-      where: { verifyToken: token },
+      where: { email },
     });
 
     if (!user) {
@@ -114,11 +120,17 @@ export class AuthService {
       throw new HttpException('Email already verified', 400);
     }
 
+    const isOtpValid = await this.otpService.verifyOtp(email, otp);
+
+    if (!isOtpValid) {
+      throw new HttpException('Invalid or expired OTP', 400);
+    }
+
     await this.prisma.user.update({
       where: { id: user.id },
       data: {
         isVerified: true,
-        verifyToken: null,
+        // verifyToken: null,
       },
     });
 
