@@ -10,6 +10,5 @@ export default defineConfig([
     extends: ['js/recommended'],
     languageOptions: { globals: globals.browser },
   },
-  { files: ['**/*.js'], languageOptions: { sourceType: 'commonjs' } },
   tseslint.configs.recommended,
 ]);

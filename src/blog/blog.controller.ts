@@ -21,13 +21,17 @@ export class BlogController {
   constructor(private blogService: BlogService) {}
 
   @Get('public')
-  getAllBlogs() {
-    return this.blogService.getAllBlogs();
+  getAllBlogs(@Req() req: any) {
+    // Try to get userId if user is authenticated (optional)
+    const userId = req.user?.id;
+    return this.blogService.getAllBlogs(userId);
   }
 
   @Get('public/:id')
-  getBlogById(@Param('id', ParseIntPipe) id: number) {
-    return this.blogService.getBlogById(id);
+  getBlogById(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
+    // Try to get userId if user is authenticated (optional)
+    const userId = req.user?.id;
+    return this.blogService.getBlogById(id, userId);
   }
 
   @Post()
@@ -42,7 +46,7 @@ export class BlogController {
   @Get('my-blogs')
   @UseGuards(JwtAuthGuard)
   getMyBlogs(@Req() req: RequestWithUser) {
-    return this.blogService.getBlogsByUser(req.user.id);
+    return this.blogService.getBlogsByUser(req.user.id, req.user.id);
   }
 
   @Patch(':id')

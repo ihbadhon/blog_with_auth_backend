@@ -2,13 +2,17 @@ import { HttpException, Injectable } from '@nestjs/common';
 import { CreateBlogDto } from './dto/create-blog.dto';
 import { UpdateBlogDto } from './dto/update-blog.dto';
 import { PrismaService } from '../prisma.service';
+import { LikeService } from '../like/like.service';
 
 @Injectable()
 export class BlogService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private likeService: LikeService,
+  ) {}
 
   // Public: Get all blogs
-  async getAllBlogs() {
+  async getAllBlogs(userId?: number) {
     const blogs = await this.prisma.blog.findMany({
       include: {
         author: {
@@ -18,17 +22,39 @@ export class BlogService {
             email: true,
           },
         },
+        _count: {
+          select: {
+            likes: true,
+          },
+        },
       },
       orderBy: {
         createdAt: 'desc',
       },
     });
 
-    return blogs;
+    // Add like information to each blog
+    const blogsWithLikes = await Promise.all(
+      blogs.map(async (blog) => {
+        const likedBy = await this.likeService.getUsersWhoLiked(blog.id);
+        const isLikedByCurrentUser = userId
+          ? await this.likeService.hasUserLiked(userId, blog.id)
+          : false;
+
+        return {
+          ...blog,
+          likeCount: blog._count.likes,
+          likedBy,
+          isLikedByCurrentUser,
+        };
+      }),
+    );
+
+    return blogsWithLikes;
   }
 
   // Get single blog (can be public or private)
-  async getBlogById(id: number) {
+  async getBlogById(id: number, userId?: number) {
     const blog = await this.prisma.blog.findUnique({
       where: { id },
       include: {
@@ -39,6 +65,11 @@ export class BlogService {
             email: true,
           },
         },
+        _count: {
+          select: {
+            likes: true,
+          },
+        },
       },
     });
 
@@ -46,7 +77,18 @@ export class BlogService {
       throw new HttpException('Blog not found', 404);
     }
 
-    return blog;
+    // Add like information
+    const likedBy = await this.likeService.getUsersWhoLiked(blog.id);
+    const isLikedByCurrentUser = userId
+      ? await this.likeService.hasUserLiked(userId, blog.id)
+      : false;
+
+    return {
+      ...blog,
+      likeCount: blog._count.likes,
+      likedBy,
+      isLikedByCurrentUser,
+    };
   }
 
   // Protected: Create blog
@@ -136,7 +178,7 @@ export class BlogService {
   }
 
   // Get blogs by specific user
-  async getBlogsByUser(userId: number) {
+  async getBlogsByUser(userId: number, currentUserId?: number) {
     const blogs = await this.prisma.blog.findMany({
       where: { authorId: userId },
       include: {
@@ -147,12 +189,34 @@ export class BlogService {
             email: true,
           },
         },
+        _count: {
+          select: {
+            likes: true,
+          },
+        },
       },
       orderBy: {
         createdAt: 'desc',
       },
     });
 
-    return blogs;
+    // Add like information to each blog
+    const blogsWithLikes = await Promise.all(
+      blogs.map(async (blog) => {
+        const likedBy = await this.likeService.getUsersWhoLiked(blog.id);
+        const isLikedByCurrentUser = currentUserId
+          ? await this.likeService.hasUserLiked(currentUserId, blog.id)
+          : false;
+
+        return {
+          ...blog,
+          likeCount: blog._count.likes,
+          likedBy,
+          isLikedByCurrentUser,
+        };
+      }),
+    );
+
+    return blogsWithLikes;
   }
 }

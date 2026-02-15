@@ -19,6 +19,8 @@ model User {
   id        Int      @id @default(autoincrement())
   username  String   @unique
   password  String
+  isVerified Boolean  @default(false)
+  verifyToken String? @unique
   email     String?  @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -26,6 +28,8 @@ model User {
   // Relations
   blogs     Blog[]
   comments  Comment[]
+  likes Like[]
+
 
   @@map("users")
 }
@@ -42,10 +46,26 @@ model Blog {
   // Relations
   author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
   comments  Comment[]
-
+  likes Like[]
+  
   @@index([authorId])
   @@map("blogs")
 }
+
+model Like {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  blogId    Int
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  blog Blog @relation(fields: [blogId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, blogId])
+  @@index([blogId])
+  @@map("likes")
+}
+
 
 model Comment {
   id        Int      @id @default(autoincrement())
