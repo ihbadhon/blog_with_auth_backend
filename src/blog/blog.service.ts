@@ -4,6 +4,10 @@ import { UpdateBlogDto } from './dto/update-blog.dto';
 import { PrismaService } from '../prisma.service';
 import { LikeService } from '../like/like.service';
 import { PaginationDto } from './dto/pagination.dto';
+import { BlogSearchDto } from './dto/blog-search.dto';
+import { title } from 'process';
+import { contains } from 'class-validator';
+import { Prisma } from 'generated/prisma/client';
 
 @Injectable()
 export class BlogService {
@@ -56,15 +60,32 @@ export class BlogService {
 
   // Public: Get all blogs with pagination
 
-  async getAllBlogs(paginationDto: PaginationDto, userId?: number) {
-    const { page, limit } = paginationDto;
+  async getAllBlogs(blogSearchDto: BlogSearchDto, userId?: number) {
+    const { page, limit, keyword } = blogSearchDto;
     const skip = (page - 1) * limit;
+
+    const searchKeyword = keyword
+      ? {
+          OR: [
+            {
+              title: { contains: keyword, mode: Prisma.QueryMode.insensitive },
+            },
+            {
+              content: {
+                contains: keyword,
+                mode: Prisma.QueryMode.insensitive,
+              },
+            },
+          ],
+        }
+      : {};
 
     const [blogs, total] = await Promise.all([
       this.prisma.blog.findMany({
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
+        where: searchKeyword,
         include: {
           author: {
             select: {
@@ -87,7 +108,7 @@ export class BlogService {
           },
         },
       }),
-      this.prisma.blog.count(),
+      this.prisma.blog.count({ where: searchKeyword }),
     ]);
 
     const blogsWithLikes = blogs.map((blog) => {

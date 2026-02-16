@@ -18,6 +18,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 import { RequestWithUser } from '../auth/interfaces/jwt-payload.interface';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { PaginationDto } from './dto/pagination.dto';
+import { BlogSearchDto } from './dto/blog-search.dto';
 
 @ApiBearerAuth()
 @Controller('blogs')
@@ -32,9 +33,9 @@ export class BlogController {
   // }
 
   @Get('all')
-  getAllBlogs(@Query() paginationDto: PaginationDto, @Req() req) {
+  getAllBlogs(@Query() blogSearchDto: BlogSearchDto, @Req() req) {
     const userId = req.user?.id;
-    return this.blogService.getAllBlogs(paginationDto, userId);
+    return this.blogService.getAllBlogs(blogSearchDto, userId);
   }
 
   @Get('public/:id')
