@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -16,17 +17,24 @@ import { UpdateBlogDto } from './dto/update-blog.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 import { RequestWithUser } from '../auth/interfaces/jwt-payload.interface';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { PaginationDto } from './dto/pagination.dto';
 
 @ApiBearerAuth()
 @Controller('blogs')
 export class BlogController {
   constructor(private blogService: BlogService) {}
 
-  @Get('public')
-  getAllBlogs(@Req() req: any) {
-    // Try to get userId if user is authenticated (optional)
+  // @Get('public')
+  // getAllBlogs(@Req() req: any) {
+  //   // Try to get userId if user is authenticated (optional)
+  //   const userId = req.user?.id;
+  //   return this.blogService.getAllBlogs(userId);
+  // }
+
+  @Get('all')
+  getAllBlogs(@Query() paginationDto: PaginationDto, @Req() req) {
     const userId = req.user?.id;
-    return this.blogService.getAllBlogs(userId);
+    return this.blogService.getAllBlogs(paginationDto, userId);
   }
 
   @Get('public/:id')

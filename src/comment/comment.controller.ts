@@ -9,6 +9,7 @@ import {
   ParseIntPipe,
   UseGuards,
   Req,
+  Query,
 } from '@nestjs/common';
 import { CommentService } from './comment.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
@@ -16,6 +17,8 @@ import { UpdateCommentDto } from './dto/update-comment.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 import { RequestWithUser } from '../auth/interfaces/jwt-payload.interface';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { BlogService } from 'src/blog/blog.service';
+import { PaginationDto } from 'src/blog/dto/pagination.dto';
 
 @ApiBearerAuth()
 @Controller('comments')
@@ -23,9 +26,18 @@ export class CommentController {
   constructor(private readonly commentService: CommentService) {}
 
   // Public: Get all comments for a specific blog
+  // @Get('blog/:blogId')
+  // getCommentsByBlog(@Param('blogId', ParseIntPipe) blogId: number) {
+  //   return this.commentService.getCommentsByBlog(blogId);
+  // }
+
+  //
   @Get('blog/:blogId')
-  getCommentsByBlog(@Param('blogId', ParseIntPipe) blogId: number) {
-    return this.commentService.getCommentsByBlog(blogId);
+  getCommentsByBlog(
+    @Query() paginationDto: PaginationDto,
+    @Param('blogId', ParseIntPipe) blogId: number,
+  ) {
+    return this.commentService.getCommentsByBlog(paginationDto, blogId);
   }
 
   // Protected: Create a comment (requires authentication)

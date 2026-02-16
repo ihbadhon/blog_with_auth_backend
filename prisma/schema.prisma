@@ -45,9 +45,9 @@ model Blog {
 
   // Relations
   author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  comments  Comment[]
-  likes Like[]
-  
+  comments  Comment[]   // this is the way to creat one-many relation
+  likes Like[]   // one-many relation
+
   @@index([authorId])
   @@map("blogs")
 }

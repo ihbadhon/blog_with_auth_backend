@@ -3,6 +3,7 @@ import { CreateBlogDto } from './dto/create-blog.dto';
 import { UpdateBlogDto } from './dto/update-blog.dto';
 import { PrismaService } from '../prisma.service';
 import { LikeService } from '../like/like.service';
+import { PaginationDto } from './dto/pagination.dto';
 
 @Injectable()
 export class BlogService {
@@ -11,46 +12,104 @@ export class BlogService {
     private likeService: LikeService,
   ) {}
 
-  // Public: Get all blogs
-  async getAllBlogs(userId?: number) {
-    const blogs = await this.prisma.blog.findMany({
-      include: {
-        author: {
-          select: {
-            id: true,
-            username: true,
-            email: true,
+  // // Public: Get all blogs
+  // async getAllBlogs(userId?: number) {
+  //   const blogs = await this.prisma.blog.findMany({
+  //     include: {
+  //       author: {
+  //         select: {
+  //           id: true,
+  //           username: true,
+  //           email: true,
+  //         },
+  //       },
+  //       _count: {
+  //         select: {
+  //           likes: true,
+  //         },
+  //       },
+  //     },
+  //     orderBy: {
+  //       createdAt: 'desc',
+  //     },
+  //   });
+
+  //   // Add like information to each blog
+  //   const blogsWithLikes = await Promise.all(
+  //     blogs.map(async (blog) => {
+  //       const likedBy = await this.likeService.getUsersWhoLiked(blog.id);
+  //       const isLikedByCurrentUser = userId
+  //         ? await this.likeService.hasUserLiked(userId, blog.id)
+  //         : false;
+
+  //       return {
+  //         ...blog,
+  //         likeCount: blog._count.likes,
+  //         likedBy,
+  //         isLikedByCurrentUser,
+  //       };
+  //     }),
+  //   );
+
+  //   return blogsWithLikes;
+  // }
+
+  // Public: Get all blogs with pagination
+
+  async getAllBlogs(paginationDto: PaginationDto, userId?: number) {
+    const { page, limit } = paginationDto;
+    const skip = (page - 1) * limit;
+
+    const [blogs, total] = await Promise.all([
+      this.prisma.blog.findMany({
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          author: {
+            select: {
+              id: true,
+              username: true,
+              email: true,
+            },
+          },
+
+          likes: {
+            select: {
+              userId: true,
+            },
+          },
+
+          _count: {
+            select: {
+              likes: true,
+            },
           },
         },
-        _count: {
-          select: {
-            likes: true,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
+      }),
+      this.prisma.blog.count(),
+    ]);
+
+    const blogsWithLikes = blogs.map((blog) => {
+      const likedBy = blog.likes.map((like) => like.userId);
+
+      const isLikedByCurrentUser = userId ? likedBy.includes(userId) : false;
+
+      return {
+        ...blog,
+        likeCount: blog._count.likes,
+        likedBy,
+        isLikedByCurrentUser,
+      };
     });
 
-    // Add like information to each blog
-    const blogsWithLikes = await Promise.all(
-      blogs.map(async (blog) => {
-        const likedBy = await this.likeService.getUsersWhoLiked(blog.id);
-        const isLikedByCurrentUser = userId
-          ? await this.likeService.hasUserLiked(userId, blog.id)
-          : false;
-
-        return {
-          ...blog,
-          likeCount: blog._count.likes,
-          likedBy,
-          isLikedByCurrentUser,
-        };
-      }),
-    );
-
-    return blogsWithLikes;
+    return {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+      data: blogsWithLikes,
+    };
   }
 
   // Get single blog (can be public or private)

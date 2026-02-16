@@ -2,14 +2,45 @@ import { HttpException, Injectable } from '@nestjs/common';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { PrismaService } from '../prisma.service';
+import { PaginationDto } from 'src/blog/dto/pagination.dto';
 
 @Injectable()
 export class CommentService {
   constructor(private prisma: PrismaService) {}
 
   // Get all comments for a specific blog (public)
-  async getCommentsByBlog(blogId: number) {
-    // First check if blog exists
+  // async getCommentsByBlog(blogId: number) {
+  //   // First check if blog exists
+  //   const blog = await this.prisma.blog.findUnique({
+  //     where: { id: blogId },
+  //   });
+
+  //   if (!blog) {
+  //     throw new HttpException('Blog not found', 404);
+  //   }
+
+  //   const comments = await this.prisma.comment.findMany({
+  //     where: { blogId },
+  //     include: {
+  //       user: {
+  //         select: {
+  //           id: true,
+  //           username: true,
+  //         },
+  //       },
+  //     },
+  //     orderBy: {
+  //       createdAt: 'desc',
+  //     },
+  //   });
+
+  //   return comments;
+  // }
+
+  async getCommentsByBlog(paginationDto: PaginationDto, blogId: number) {
+    const { page, limit } = paginationDto;
+    const skip = (page - 1) * limit;
+
     const blog = await this.prisma.blog.findUnique({
       where: { id: blogId },
     });
@@ -18,22 +49,24 @@ export class CommentService {
       throw new HttpException('Blog not found', 404);
     }
 
-    const comments = await this.prisma.comment.findMany({
-      where: { blogId },
-      include: {
-        user: {
-          select: {
-            id: true,
-            username: true,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+    const [comments, total] = await Promise.all([
+      this.prisma.comment.findMany({
+        where: { blogId },
+        include: { user: { select: { id: true, username: true } } },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.comment.count({ where: { blogId } }),
+    ]);
 
-    return comments;
+    return {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+      data: comments,
+    };
   }
 
   // Create a comment (authenticated)
