@@ -22,7 +22,7 @@ async function main() {
     return;
   }
 
-  const adminPassword = 'bolbo_na_pass'; // Change this to a secure password
+  const adminPassword = 'bolbo_na_pass';
   const hashedPassword = await bcrypt.hash(adminPassword, 10);
 
   const admin = await prisma.user.create({

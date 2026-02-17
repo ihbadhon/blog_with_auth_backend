@@ -153,7 +153,7 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new HttpException('User not found', 404);
+      throw new NotFoundException('User not found');
     }
 
     if (user.isVerified) {
@@ -198,5 +198,85 @@ export class AuthService {
         500,
       );
     }
+  }
+
+  async forgotPassword(email: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (!user) {
+      return {
+        message:
+          'If an account with that email exists, a password reset link has been sent.',
+      };
+    }
+
+    const otp = await this.otpService.storeOtp(email, 600); // OTP valid for 10 minutes
+
+    // Send verification email
+    const appUrl = this.configService.get('APP_URL');
+    // const verificationUrl = `${appUrl}/auth/verify/${email}/${otp}`;
+    const verificationUrl = `${appUrl}/auth/reset-password/${email}/${otp}`;
+
+    try {
+      await this.mailerService.sendMail({
+        to: email,
+        subject: 'Reset Your Password',
+        html: `
+          <h1>Password Reset Request</h1>
+          <p>! Please reset your password by clicking the link below:</p>
+          <a href="${verificationUrl}" style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;">Reset Password</a>
+          <p>Or copy and paste this link into your browser:</p>
+          <p>${verificationUrl}</p>
+          <p>This link will expire in 24 hours.</p>
+          <p>If you didn't request this, please ignore this email.</p>
+        `,
+      });
+
+      return {
+        message:
+          'Password reset email sent successfully! Please check your email.',
+        email: email,
+      };
+    } catch (error) {
+      // Log the actual error for debugging
+      console.error('Email sending failed:', error);
+
+      // Rollback user creation if email fails
+      // await this.prisma.user.delete({ where: { id: user.id } });
+
+      throw new HttpException(
+        `Failed to send password reset email: ${error.message || 'Unknown error'}`,
+        500,
+      );
+    }
+  }
+
+  async resetPassword(otp: string, email: string, newPassword: string) {
+    console.log(email);
+
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const isOtpValid = await this.otpService.verifyOtp(email, otp);
+
+    if (!isOtpValid) {
+      throw new GoneException('Invalid or expired OTP');
+    }
+
+    const hashedPass = await bcrypt.hash(newPassword, 10);
+
+    await this.prisma.user.update({
+      where: { email },
+      data: {
+        password: hashedPass,
+      },
+    });
   }
 }

@@ -4,12 +4,12 @@ import { v4 as uuid } from 'uuid';
 
 @Injectable()
 export class OtpService {
-  async storeOtp(email: string) {
+  async storeOtp(email: string, expirySeconds?: number) {
     const key = `otp:${email}`;
 
     const otp = uuid().slice(0, 6).toUpperCase();
 
-    await redis.set(key, otp, 'EX', 300);
+    await redis.set(key, otp, 'EX', expirySeconds || 300);
     console.log('otp saved successfully!');
 
     return otp;

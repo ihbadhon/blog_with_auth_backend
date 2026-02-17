@@ -12,6 +12,8 @@ import { AuthService } from './auth.service';
 import { localGuard } from './guards/local.guard';
 import { JwtAuthGuard } from './guards/jwt.guard';
 import { RequestWithUser } from './interfaces/jwt-payload.interface';
+import { ForgotPasswordDto } from 'src/user/dto/forgot-pass.dto';
+import { ResetPasswordDto } from 'src/user/dto/reset-pass.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -44,5 +46,19 @@ export class AuthController {
     console.log('insider auth controller get req');
     console.log(req.user);
     return req.user;
+  }
+
+  @Post('forgot-password')
+  forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(dto.email);
+  }
+
+  @Post('reset-password/:email/:token')
+  resetPassword(
+    @Param('email') email: string,
+    @Param('token') token: string,
+    @Body() dto: ResetPasswordDto,
+  ) {
+    return this.authService.resetPassword(token, email, dto.newPassword);
   }
 }
