@@ -17,7 +17,6 @@ import { UpdateCommentDto } from './dto/update-comment.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 import { RequestWithUser } from '../auth/interfaces/jwt-payload.interface';
 import { ApiBearerAuth } from '@nestjs/swagger';
-import { BlogService } from 'src/blog/blog.service';
 import { PaginationDto } from 'src/blog/dto/pagination.dto';
 
 @ApiBearerAuth()

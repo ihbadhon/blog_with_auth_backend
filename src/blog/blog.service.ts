@@ -3,10 +3,7 @@ import { CreateBlogDto } from './dto/create-blog.dto';
 import { UpdateBlogDto } from './dto/update-blog.dto';
 import { PrismaService } from '../prisma.service';
 import { LikeService } from '../like/like.service';
-import { PaginationDto } from './dto/pagination.dto';
 import { BlogSearchDto } from './dto/blog-search.dto';
-import { title } from 'process';
-import { contains } from 'class-validator';
 import { Prisma } from 'generated/prisma/client';
 
 @Injectable()

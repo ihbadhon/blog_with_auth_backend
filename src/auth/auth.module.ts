@@ -6,9 +6,10 @@ import { PassportModule } from '@nestjs/passport';
 import { LocalStrategy } from './strategies/local.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { PrismaModule } from '../prisma.module';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigService } from '@nestjs/config';
 import { OtpModule } from './otp/otp.module';
 import { OtpService } from './otp/otp.service';
+import { RolesGuard } from './guards/roles.guard';
 
 @Module({
   imports: [
@@ -24,6 +25,6 @@ import { OtpService } from './otp/otp.service';
     OtpModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, LocalStrategy, JwtStrategy, OtpService],
+  providers: [AuthService, LocalStrategy, JwtStrategy, OtpService, RolesGuard],
 })
 export class AuthModule {}

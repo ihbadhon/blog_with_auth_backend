@@ -1,4 +1,12 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  GoneException,
+  HttpException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { AuthPayloadDto } from './dot/auth.dto';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma.service';
@@ -75,9 +83,8 @@ export class AuthService {
       // Rollback user creation if email fails
       await this.prisma.user.delete({ where: { id: user.id } });
 
-      throw new HttpException(
+      throw new InternalServerErrorException(
         `Failed to send verification email: ${error.message || 'Unknown error'}`,
-        500,
       );
     }
   }
@@ -87,7 +94,7 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new HttpException('invalid user', 401);
+      throw new NotFoundException('user not found!');
     }
 
     if (!user.isVerified) {
@@ -104,7 +111,7 @@ export class AuthService {
       return this.jwtService.sign(remainingData);
     }
 
-    throw new HttpException('Invalid credentials', 401);
+    throw new UnauthorizedException('invalid credentials!');
   }
 
   async verifyEmail(email: string, otp: string) {
@@ -113,17 +120,17 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new HttpException('Invalid or expired verification token', 400);
+      throw new GoneException('Invalid or expired verification token');
     }
 
     if (user.isVerified) {
-      throw new HttpException('Email already verified', 400);
+      throw new ConflictException('Email is already verified');
     }
 
     const isOtpValid = await this.otpService.verifyOtp(email, otp);
 
     if (!isOtpValid) {
-      throw new HttpException('Invalid or expired OTP', 400);
+      throw new GoneException('Invalid or expired verification token');
     }
 
     await this.prisma.user.update({

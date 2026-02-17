@@ -7,6 +7,7 @@ import { PrismaModule } from './prisma.module';
 import { CommentModule } from './comment/comment.module';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { LikeModule } from './like/like.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { LikeModule } from './like/like.module';
     PrismaModule,
     CommentModule,
     LikeModule,
+    AdminModule,
   ],
   controllers: [],
   providers: [],
